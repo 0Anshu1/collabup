@@ -1,0 +1,134 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatar    String?
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  buddyProfile     BuddyProfile?
+  mentorProfile    MentorProfile?
+  appliedProjects  ResearchApplication[]
+  enrolledProjects StartupEnrollment[]
+}
+
+model BuddyProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  domain     String
+  level      String
+  skills     String[]
+  matchScore Int
+  hackathons String[]
+  
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model MentorProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  domain     String
+  pricing    String
+  experience Int
+  matchScore Int
+  skills     String[]
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+  sessions   MentorSession[]
+}
+
+model MentorSession {
+  id          String   @id @default(cuid())
+  mentorId    String
+  studentId   String
+  date        DateTime
+  timeSlot    String
+  platform    String
+  status      String   @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  createdAt   DateTime @default(now())
+
+  // Relations
+  mentor      MentorProfile @relation(fields: [mentorId], references: [id])
+}
+
+model ResearchProject {
+  id          String   @id @default(cuid())
+  title       String
+  faculty     String
+  domain      String
+  duration    String
+  spots       Int
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  applications ResearchApplication[]
+}
+
+model ResearchApplication {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  semester  Int
+  cgpa      Float
+  branch    String
+  resume    String   // URL to stored resume
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User            @relation(fields: [userId], references: [id])
+  project   ResearchProject @relation(fields: [projectId], references: [id])
+}
+
+model StartupProject {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  domain      String
+  duration    String
+  level       String
+  imageUrl    String
+  location    String
+  matchScore  Int
+  skills      String[]
+  certificate Boolean
+  offeredBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  enrollments StartupEnrollment[]
+}
+
+model StartupEnrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  startDate String
+  resume    String   // URL to stored resume
+  idCard    String   // URL to stored ID card
+  status    String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User           @relation(fields: [userId], references: [id])
+  project   StartupProject @relation(fields: [projectId], references: [id])
+}
+
